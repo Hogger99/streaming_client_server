@@ -5,6 +5,7 @@
 
 import yaml
 from os.path import exists
+import json
 import argparse
 
 
@@ -18,8 +19,17 @@ def read_yaml_file(file_name):
         print(contents)
         return contents
 
+def read_json_file(file_name):
+    if exists(file_name):
+        with open(file_name, 'rt') as file:
+            contents = file.read()
+            contents = json.loads(contents)
+            return contents
+    else:
+        contents = f"error {file_name} does not exist"
+        print(contents)
+        return contents
 
-### Pytest
 
 
 
