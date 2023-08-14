@@ -1,0 +1,25 @@
+version: "3.7"
+
+services:
+  postgres:
+    image: postgres
+    container_name: postgres
+    shm_size: 256M
+    ports:
+      - target: 5432
+        published: 5432
+        protocol: tcp
+        mode: host
+    environment:
+      POSTGRES_USER: samdb_user
+      POSTGRES_PASSWORD: samdb123
+      POSTGRES_DB: samdb
+    volumes:
+      - db-data:/var/lib/postgresql/data
+      - type: bind
+        source: ${PG_HOME}
+        target: /var/pqdata
+        read_only: false
+
+volumes:
+  db-data:
