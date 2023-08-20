@@ -287,7 +287,19 @@ The table created uses Postgres so that we can hold Relational data and Unstruct
 ### Web service
 
 
+### Testing
 
+Pytest has been added in order to test many of the functions.
+In order for Pytest tests to work, Kafka and samdb must be up and running.
+An example of one of the tests in test_microservice.py:
+
+    def test_query_relational_data():
+        ms.config_file_name='../src/test_config.yml'
+    
+        query = ms.Query(**{'name':'stephen', 'key':None, 'age':None, 'value':None})
+    
+        records = ms.query_relational_data(query=query)
+        assert len(records) == 1
 
 
 
@@ -297,5 +309,11 @@ The table created uses Postgres so that we can hold Relational data and Unstruct
 - 
 ## **How to run**
 
-1) 
+1) Ensure that Kafka and Samdb is up and running;   
+    - Ensure Docker.app is open
+    - Open terminal and move to database
+    - run ./start_postgres.run
+    - move to Kafka
+    - run ./start_kafka.sh
+2) 
 
