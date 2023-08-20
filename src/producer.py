@@ -1,5 +1,5 @@
-from file_reader import read_yaml_file, read_json_file
-from kafka_messaging import produce_connection
+from src.file_reader import read_yaml_file, read_json_file
+from src.kafka_messaging import produce_connection
 import argparse
 import sys
 import os

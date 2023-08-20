@@ -2,9 +2,9 @@ from kafka3 import KafkaConsumer
 import argparse
 import sys
 import os
-from file_reader import read_yaml_file
+from src.file_reader import read_yaml_file
 import json
-from stack_db import configure_db,  insert_test_data
+from src.stack_db import configure_db,  insert_test_data
 
 
 def consume_messages(config_file):

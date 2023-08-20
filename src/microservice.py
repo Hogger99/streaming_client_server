@@ -2,19 +2,21 @@ from fastapi import FastAPI
 from fastapi import HTTPException
 import uvicorn
 from pydantic import BaseModel
-from stack_db import select_test_data
+from src.stack_db import select_test_data
 import threading
 import argparse
-from consumer import consume_messages
+from src.consumer import consume_messages
 import sys
 from typing import Any, Optional
 import os
-from file_reader import read_yaml_file
+from src.file_reader import read_yaml_file
 
 
 class Query(BaseModel):
-    key: str
-    value: Any
+    key: Optional[str]
+    value: Optional[Any]
+    name: Optional[str]
+    age: Optional[int]
 
 
 app = FastAPI()
@@ -23,29 +25,69 @@ config_file_name: Optional[str] = None
 
 
 @app.post("/api/v1/query_unstructured_data")
-async def query_unstructured_data(query: Query):
+def query_unstructured_data(query: Query):
     global config_file_name
 
-    if os.path.exists(config_file_name):
-        cfg = read_yaml_file(config_file_name)
+    if query.key is not None and query.value is not None:
 
-        # setup db
-        db_str = f"host={cfg['DATABASE']['HOST']} port={cfg['DATABASE']['PORT']} dbname={cfg['DATABASE']['DBNAME']} user={cfg['DATABASE']['DBUSER']} password={cfg['DATABASE']['USER_PWD']}"
+        if os.path.exists(config_file_name):
+            cfg = read_yaml_file(config_file_name)
 
-        key_to_query = query.key
-        value_to_query = query.value
+            # setup db
+            db_str = f"host={cfg['DATABASE']['HOST']} port={cfg['DATABASE']['PORT']} dbname={cfg['DATABASE']['DBNAME']} user={cfg['DATABASE']['DBUSER']} password={cfg['DATABASE']['USER_PWD']}"
 
-        records, error = select_test_data(db=db_str,
-                                          where={f"msg ->> '{key_to_query}' =": value_to_query})
+            key_to_query = query.key
+            value_to_query = query.value
+
+            records, error = select_test_data(db=db_str,
+                                              where={f"msg ->> '{key_to_query}' =": value_to_query})
+        else:
+            error = 'could not read config file'
+            records = None
+
     else:
-        error = 'could not read config file'
+        error = 'query.key and query.value are None'
         records = None
 
     if error is None:
         return records
     else:
-        raise HTTPException(status_code=404, detail=f"No records returned")
+        raise HTTPException(status_code=404, detail=error)
 
+@app.post("/api/v1/query_relational_data")
+def query_relational_data(query: Query):
+    global config_file_name
+
+    if query.age is not None or query.name is not None:
+
+        if os.path.exists(config_file_name):
+            cfg = read_yaml_file(config_file_name)
+
+            # setup db
+            db_str = f"host={cfg['DATABASE']['HOST']} port={cfg['DATABASE']['PORT']} dbname={cfg['DATABASE']['DBNAME']} user={cfg['DATABASE']['DBUSER']} password={cfg['DATABASE']['USER_PWD']}"
+
+            where = {}
+
+            if query.age is not None:
+                where['age ='] = query.age
+
+            if query.name is not None:
+                where['name ='] = query.name
+
+            records, error = select_test_data(db=db_str,
+                                              where=where)
+        else:
+            error = 'could not read config file'
+            records = None
+
+    else:
+        error = 'query.age and query.name are None'
+        records = None
+
+    if error is None:
+        return records
+    else:
+        raise HTTPException(status_code=404, detail=error)
 
 def run_server(cfg):
     global config_file_name
